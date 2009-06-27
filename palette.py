@@ -59,17 +59,26 @@ class zimage:
 		maxi, bands = self.bands()
 		maxi = math.log(maxi)
 		print maxi
-		im = Image.new('RGB', (256,256))
+		im = Image.new('RGBA', (512,512))
+		draw = ImageDraw.Draw(im)
+		draw.ellipse((0,0,512,512),(0,0,0,255))
 		for h in range(256):
+			angle = h * math.pi / 128
 			for s in range(256):
-				v = 0
 				if bands[h][s] != 0:
 					v = math.log(bands[h][s])/maxi
-				r,g,b = colorsys.hsv_to_rgb(h/256.0, s/256.0, v)
-				im.putpixel((h,s),(int(r*256), int(g*256), int(b*256)))
+					r,g,b = colorsys.hsv_to_rgb(h/256.0, s/256.0, v *0.5 + 0.5)
+					#im.putpixel((h,s),(int(r*256), int(g*256), int(b*256)))
+					draw.point((
+						math.sin(angle) * v *256 + 256,
+						math.cos(angle) * v *256 + 256
+					), (int(r*256), int(g*256), int(b*256)))
+		im = im.resize((256,256), Image.ANTIALIAS)
 		im.save('%s__map.png' % self.name)
-		im = Image.new('RGB', (512,512))
+
+		im = Image.new('RGBA', (512,512))
 		draw = ImageDraw.Draw(im)
+		draw.ellipse((0,0,512,512),(0,0,0,255))
 		m = 0
 		hues = {}
 		for h in range(256):
@@ -78,12 +87,17 @@ class zimage:
 				hues[h] += bands[h][s] * math.log(s+1)
 			m = max(m, hues[h])
 		m = math.log(m)
+		avant = None
 		for h in range(256):
 			angle = h * math.pi / 128
 			if hues[h] != 0:
 				r,g,b = colorsys.hsv_to_rgb(h/256.0, 0.75, 0.75)
-				draw.line([(256,256), (math.sin(angle) * math.log(hues[h]) / m *256 + 256, math.cos(angle) * math.log(hues[h]) / m *256 + 256 )], (int(r*256), int(g*256), int(b*256)))
-		im = im.resize((128,128), Image.ANTIALIAS)
+				pos = (math.sin(angle) * math.log(hues[h]) / m *256 + 256, math.cos(angle) * math.log(hues[h]) / m *256 + 256 )
+				if avant != None:
+					draw.line([avant, pos], "white")
+				avant = pos
+				draw.line([(256,256), pos], (int(r*256), int(g*256), int(b*256)))
+		im = im.resize((256,256), Image.ANTIALIAS)
 		im.save('%s__star.png' % self.name)
 	def reference(self):
 		im = Image.new('RGB', (256,256))
