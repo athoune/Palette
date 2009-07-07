@@ -19,6 +19,7 @@ class ColorMap(object):
 	name: name of the file
 	max: is the max value
 	data: is the matrix
+	pixels: number of pixels
 	"""
 	def __init__(self, path):
 		image = Image.open(path)
@@ -29,6 +30,7 @@ class ColorMap(object):
 			for s in range(256):
 				self.data[h][s] = 0
 		width, height = image.size
+		self.pixels = width * height
 		self.max = 0
 		for x in range(width):
 			for y in range(height):
