@@ -5,7 +5,7 @@ import Image
 import ImageDraw
 import math
 
-from colors import ColorMap, hsv2rgb
+from palette import ColorMap, hsv2rgb
 
 def blackCircle(size):
 	im = Image.new('RGBA', (size*2,size*2))
