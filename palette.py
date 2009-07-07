@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__author__ = "Mathieu Lecarme <mathieu@garambrogne.net>"
+
 import colorsys
 import Image
 
@@ -45,4 +47,3 @@ if __name__ == "__main__":
 	import sys
 	colormap = ColorMap(sys.argv[1])
 	print colormap.name, colormap.max
-	#print matrix.data
