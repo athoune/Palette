@@ -5,7 +5,7 @@ __author__ = "Mathieu Lecarme <mathieu@garambrogne.net>"
 
 #import rabbyt
 import math
-from colors import ColorMap, hsv2rgb
+from palette import ColorMap, hsv2rgb
 
 class Circle(object):
 	def __init__(self, x, y, r, color):
@@ -25,9 +25,16 @@ class Packet(object):
 	def __cmp__(self, other):
 		return self.size.__cmp__(other.size)
 	def squared_distance(self,other):
-		deltah = abs(self.h - other.h) % 128
+		deltah = abs(self.h - other.h) % 129
 		deltas = self.s - other.s
 		return deltas*deltas + deltah*deltah
+	def mix(self, other):
+		size = self.size + other.size
+		dh = (self.size*self.h -other.size*other.h)/size
+		ds = (self.size*self.s -other.size*other.s)/size
+		self.s -= ds
+		self.h -= dh
+		self.size = size
 
 def palette(colormap, size = 256, huescale = 16, saturationscale =16):
 	data = {}
@@ -54,20 +61,24 @@ def palette(colormap, size = 256, huescale = 16, saturationscale =16):
 			if n > 0:
 				todo.append(Packet(h*huescale, s*saturationscale, n))
 	todo.sort()
-	todo.reverse()
 	print "todo", todo
 	print
 	print "done", done
 	#while, todo.pop, pas de revers, todo[-1]
-	prems = todo[0]
-	shorter = todo[1]
-	shorter_dist = prems.squared_distance(shorter)
-	for other in todo[2:]:
-		distance = prems.squared_distance(other)
-		if distance < shorter_dist:
-			shorter_dist = distance
-			shorter = other
-	print prems, shorter, math.sqrt(shorter_dist)
+	while len(todo) > 0:
+		prems = todo[-1]
+		shorter = todo[0]
+		shorter_dist = prems.squared_distance(shorter)
+		for other in todo[1:-2]:
+			distance = prems.squared_distance(other)
+			if distance < shorter_dist:
+				shorter_dist = distance
+				shorter = other
+		print prems, shorter, math.sqrt(shorter_dist)
+		if prems.size + shorter.size < packet:
+			prems.mix(shorter)
+			done.append(prems)
+			todo.pop()
 	
 
 if __name__ == "__main__":
