@@ -65,20 +65,28 @@ def palette(colormap, size = 256, huescale = 16, saturationscale =16):
 	print
 	print "done", done
 	#while, todo.pop, pas de revers, todo[-1]
+	prems = todo[-1]
 	while len(todo) > 0:
-		prems = todo[-1]
-		shorter = todo[0]
-		shorter_dist = prems.squared_distance(shorter)
-		for other in todo[1:-2]:
-			distance = prems.squared_distance(other)
+		shorter = 0
+		shorter_dist = prems.squared_distance(todo[shorter])
+		for other in range(1, len(todo)-2):
+			distance = prems.squared_distance(todo[other])
 			if distance < shorter_dist:
 				shorter_dist = distance
 				shorter = other
 		print prems, shorter, math.sqrt(shorter_dist)
-		if prems.size + shorter.size < packet:
-			prems.mix(shorter)
+		ammo = todo[shorter]
+		del todo[shorter]
+		if prems.size + ammo.size > packet:
+			reste = ammo
+			ammo.size = packet - prems.size
+			reste.size -= ammo.size
+			todo.append(reste)
+			todo.sort()
+		prems.mix(ammo)
+		if prems.size == packet:
 			done.append(prems)
-			todo.pop()
+			prems = todo[-1]
 	
 
 if __name__ == "__main__":
