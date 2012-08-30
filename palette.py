@@ -13,6 +13,13 @@ def rgb2hsv(rgb):
     return (int(tmp[0] * 255), int(tmp[1] * 255), int(tmp[2] * 255))
 
 
+def rgb2hsy(rgb):
+    tmp = colorsys.rgb_to_hsv(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0)
+    # http://en.wikipedia.org/wiki/Grayscale
+    y = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+    return (int(tmp[0] * 255), int(tmp[1] * 255), int(y))
+
+
 def hsv2rgb(hsv):
     "hsv to rgb conversion with value between 0 and 255"
     tmp = colorsys.hsv_to_rgb(hsv[0] / 256.0, hsv[1] / 256.0, hsv[2] / 256.0)
@@ -67,25 +74,30 @@ class ColorMap(object):
         self.pixels = width * height
         self.max = 0
         self.colors = {}
+        self.white = 0
+        self.black = 0
         for x in range(width):
             for y in range(height):
                 point = image.getpixel((x, y))
-                h, s, v = rgb2hsv(point)
+                h, s, y = rgb2hsy(point)
                 self.data[h][s] += 1
                 self.max = max(self.data[h][s], self.max)
-                if v > 5 and v < 250:
-                    if (h, s) not in self.colors:
-                        self.colors[(h, s)] = Color(h, s)
-                    self.colors[(h, s)].incr()
-
-    def __getitem__(self, key):
-        return self.data[key]
-
+                if y <= 30:
+                    self.black += 1
+                else:
+                    if y >= 224:
+                        self.white += 1
+                    else:
+                        if (h, s) not in self.colors:
+                            self.colors[(h, s)] = Color(h, s)
+                        self.colors[(h, s)].incr()
+        self.colors = self.colors.values()
+        self.colors.sort()
 
 if __name__ == "__main__":
     import sys
     colormap = ColorMap(sys.argv[1])
     print colormap.name, colormap.max
-    c = colormap.colors.values()
-    c.sort()
-    print c
+    #print colormap
+    print "black", colormap.black * 100.0 / colormap.pixels
+    print "white", colormap.white * 100.0 / colormap.pixels
