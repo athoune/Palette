@@ -34,8 +34,7 @@ def quantize(path, color):
     w, h = img.size
     size = w * h
     colors = [Color(c[1], 1.0 * c[0] / size) for c in img.convert("RGB").getcolors()]
-    sorted(colors)
-    return colors
+    return sorted(colors)
 
 if __name__ == "__main__":
     import sys
