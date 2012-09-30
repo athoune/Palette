@@ -38,7 +38,7 @@ def quantize(path, color):
 
 if __name__ == "__main__":
     import sys
-    print "<html><table><tr>"
+    print '<html><img src="%s"><br><table><tr>' % sys.argv[1]
     for color in quantize(sys.argv[1], 8):
         print '<td bgcolor="#%s" width="50">&nbsp;</td>' % color.hexa()
     print "</tr></table></html>"
