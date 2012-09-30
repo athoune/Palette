@@ -24,6 +24,9 @@ class Color(object):
     def __repr__(self):
         return "<Color %s>" % str(self.rgb)
 
+    def hexa(self):
+        return "%x%x%x" % self.rgb
+
 
 def quantize(path, color):
     pipe = os.popen("cat %s | pngquant -nofs %i" % (path, color), "r")
@@ -36,4 +39,7 @@ def quantize(path, color):
 
 if __name__ == "__main__":
     import sys
-    print quantize(sys.argv[1], 8)
+    print "<html><table><tr>"
+    for color in quantize(sys.argv[1], 8):
+        print '<td bgcolor="#%s" width="50">&nbsp;</td>' % color.hexa()
+    print "</tr></table></html>"
