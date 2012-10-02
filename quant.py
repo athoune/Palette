@@ -4,6 +4,9 @@
 Use pngquant to extract a weighted palette from a picture.
 http://pngquant.org/#algorithm
 
+pngnq :
+http://pngnq.sourceforge.net/
+
 colormath :
 http://code.google.com/p/python-colormath/wiki/ColorConversions
 """
@@ -45,7 +48,9 @@ class Color(object):
 def quantize(path, color, thresold=20, quant='pngquant'):
     if quant == 'pngquant':
         cmd = 'pngquant -nofs'
-    pipe = os.popen("cat %s | %s -nofs %i" % (path, cmd, color), "r")
+    elif quant == 'pngnq':
+        cmd = 'pngnq -n'
+    pipe = os.popen("cat %s | %s %i" % (path, cmd, color), "r")
     img = Image.open(StringIO(pipe.read()))
     w, h = img.size
     size = w * h
@@ -83,7 +88,7 @@ def colormap(colors, size=256):
 
 if __name__ == "__main__":
     import sys
-    colors = quantize(sys.argv[1], 8, 15)
+    colors = quantize(sys.argv[1], 16, 20, 'pngquant')
     print '<html><br><table><tr>'
     for color in colors:
         print '<td bgcolor="#%s" width="50">&nbsp;</td>' % color.hexa()
