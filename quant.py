@@ -10,7 +10,7 @@ http://pngnq.sourceforge.net/
 colormath :
 http://code.google.com/p/python-colormath/wiki/ColorConversions
 """
-import os
+import subprocess
 import colorsys
 import math
 from cStringIO import StringIO
@@ -47,11 +47,13 @@ class Color(object):
 
 def quantize(path, color, thresold=20, quant='pngquant'):
     if quant == 'pngquant':
-        cmd = 'pngquant -nofs'
+        cmd = ['pngquant', '-nofs']
     elif quant == 'pngnq':
-        cmd = 'pngnq -n'
-    pipe = os.popen("cat %s | %s %i" % (path, cmd, color), "r")
-    img = Image.open(StringIO(pipe.read()))
+        cmd = ['pngnq', '-n']
+    cmd.append(str(color))
+    pipe = subprocess.Popen(cmd, stdin=file(path, 'r'), stdout=subprocess.PIPE)
+    pipe.wait()
+    img = Image.open(StringIO(pipe.stdout.read()))
     w, h = img.size
     size = w * h
     colors = [Color(c[1], 1.0 * c[0] / size) for c in img.convert("RGB").getcolors()]
