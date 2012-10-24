@@ -29,7 +29,7 @@ def colormap(path, size=8):
                 white += n
             else:
                 m[b / d][a / d] += n
-    coeff = 256 * 256
+    coeff = 1000
     # Size doesn't matter, values are comparable
     return m * coeff / t, black * coeff / t, white * coeff / t
 
@@ -44,4 +44,4 @@ if __name__ == "__main__":
         m1, b1, w1 = colormap(sys.argv[1])
         m2, b2, w2 = colormap(sys.argv[2])
         m = m1 - m2
-        print abs(m)
+        print abs(m).sum() + abs(b1 -b2) + abs(w1 - w2)
