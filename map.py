@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import subprocess
+import struct
 from numpy import zeros
 
 
@@ -40,6 +41,10 @@ if __name__ == "__main__":
         m, b, w = colormap(sys.argv[1])
         print m
         print b, w
+        with open('%s.data' % sys.argv[1], 'w') as d:
+            values = list(m.flatten()) + [b, w]
+            print values
+            d.write(struct.pack('i' * len(values), *values))
     elif len(sys.argv) == 3:
         m1, b1, w1 = colormap(sys.argv[1])
         m2, b2, w2 = colormap(sys.argv[2])
