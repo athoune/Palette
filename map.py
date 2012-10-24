@@ -6,10 +6,12 @@ from numpy import zeros
 
 
 def colormap(path, size=8):
+    "Build a matrix of color, black and white colors. Size is the size sampling."
+    # imagemagick convert image colorspace from sRGB to CIELab
+    # and build an histogram
     cmd = ['convert', path, '-colorspace', 'sRGB', '-colorspace', 'Lab', '-format', '%c', 'histogram:info:-']
-    # convert 51963fc1422ea82f6df3deefcea66b9ee7892630_m.jpg -colorspace LAB -format %c histogram:info:-
     pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    m = zeros([size, size], int)
+    m = zeros([size, size], int)  # empty matrix
     d = 256 / size
     t = 0
     black = 0
@@ -26,9 +28,9 @@ def colormap(path, size=8):
             elif l > 250:
                 white += n
             else:
-                #print b / d, a / d, b, a
                 m[b / d][a / d] += n
     coeff = 256 * 256
+    # Size doesn't matter, values are comparable
     return m * coeff / t, black * coeff / t, white * coeff / t
 
 
