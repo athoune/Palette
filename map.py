@@ -37,14 +37,18 @@ def colormap(path, size=8):
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 1:
+        import glob
+        for img in glob.glob('*.jpg'):
+            m, b, w = colormap(img)
+            with open('%s.data' % img, 'w') as d:
+                values = list(m.flatten()) + [b, w]
+                print values
+                d.write(struct.pack('i' * len(values), *values))
+    elif len(sys.argv) == 2:
         m, b, w = colormap(sys.argv[1])
         print m
         print b, w
-        with open('%s.data' % sys.argv[1], 'w') as d:
-            values = list(m.flatten()) + [b, w]
-            print values
-            d.write(struct.pack('i' * len(values), *values))
     elif len(sys.argv) == 3:
         m1, b1, w1 = colormap(sys.argv[1])
         m2, b2, w2 = colormap(sys.argv[2])
