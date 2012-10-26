@@ -42,5 +42,17 @@ def load_data():
     return datas
 
 
+def reducator(datas, distmax=500):
+    while True:
+        _, shorter = reduce(datas, distmax)
+        if shorter is None:
+            return datas
+        i, j = shorter
+        datas.remove(i)
+        datas.remove(j)
+        datas.append(fusion(i, j))
+
+
 if __name__ == "__main__":
-        print reduce(load_data())
+    for a in reducator(load_data()):
+        print a[0]
