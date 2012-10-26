@@ -58,8 +58,9 @@ if __name__ == "__main__":
         f.write('<html><head><body>')
         for a in reducator(load_data()):
             print a[0]
-            f.write('<div style="border: thin red dotted; margin: 5px">')
-            for aa in a[0]:
-                f.write('<img style="max-height: 128px" src="%s"/>' % aa[:-5])
-            f.write('</div>\n')
+            if len(a[0]) > 1:
+                f.write('<div style="border: thin red dotted; margin: 5px">')
+                for aa in a[0]:
+                    f.write('<img style="max-height: 128px" src="%s"/>' % aa[:-5])
+                f.write('</div>\n')
         f.write('</body></html>')
