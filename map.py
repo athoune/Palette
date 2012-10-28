@@ -35,11 +35,20 @@ def colormap(path, size=8):
     return m * coeff / t, black * coeff / t, white * coeff / t
 
 
+def palette(colormap, distance=10):
+    # TODO filter with a thresold, group colors with kmeans
+    # TODO palette distance, sums of shortest distance between each color from one
+    # palette to the other
+    pass
+
 if __name__ == "__main__":
     import sys
+    import os.path
     if len(sys.argv) == 1:
         import glob
         for img in glob.glob('*.jpg'):
+            if os.path.exists('%s.data' % img):
+                continue
             m, b, w = colormap(img)
             with open('%s.data' % img, 'w') as d:
                 values = list(m.flatten()) + [b, w]
