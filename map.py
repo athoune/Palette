@@ -46,12 +46,14 @@ if __name__ == "__main__":
     import os.path
     if len(sys.argv) == 1:
         import glob
-        for img in glob.glob('*.jpg'):
-            if os.path.exists('%s.data' % img):
+        for img in glob.glob('images/*.jpg'):
+            data = 'datas/%s.data' % img.split('/')[-1]
+            if os.path.exists(data):
                 continue
             m, b, w = colormap(img)
-            with open('%s.data' % img, 'w') as d:
+            with open(data, 'w') as d:
                 values = list(m.flatten()) + [b, w]
+                print img
                 print values
                 d.write(struct.pack('i' * len(values), *values))
     elif len(sys.argv) == 2:
@@ -62,4 +64,4 @@ if __name__ == "__main__":
         m1, b1, w1 = colormap(sys.argv[1])
         m2, b2, w2 = colormap(sys.argv[2])
         m = m1 - m2
-        print abs(m).sum() + abs(b1 -b2) + abs(w1 - w2)
+        print abs(m).sum() + abs(b1 - b2) + abs(w1 - w2)

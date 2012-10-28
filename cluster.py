@@ -35,14 +35,14 @@ def reduce(datas, distmax=3000):
 
 def load_data():
     datas = []
-    for data in glob.glob('*.data'):
+    for data in glob.glob('datas/*.data'):
         blob = open(data, 'r').read()
         v = array(struct.unpack('i' * (len(blob) / 4), blob))
         datas.append(([data], 1, v))
     return datas
 
 
-def reducator(datas, distmax=1000):
+def reducator(datas, distmax=500):
     while True:
         _, shorter = reduce(datas, distmax)
         if shorter is None:
@@ -61,6 +61,6 @@ if __name__ == "__main__":
             if len(a[0]) > 1:
                 f.write('<div style="border: thin red dotted; margin: 5px">')
                 for aa in a[0]:
-                    f.write('<img style="max-height: 128px" src="%s"/>' % aa[:-5])
+                    f.write('<img style="max-height: 128px; margin-right: 5px" src="images/%s"/>' % aa.split('/')[-1][:-5])
                 f.write('</div>\n')
         f.write('</body></html>')
