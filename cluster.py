@@ -42,7 +42,7 @@ def load_data():
     return datas
 
 
-def reducator(datas, distmax=500):
+def reducator(datas, distmax=200):
     while True:
         _, shorter = reduce(datas, distmax)
         if shorter is None:
