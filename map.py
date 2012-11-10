@@ -6,30 +6,36 @@ import struct
 from numpy import zeros
 
 
+def histogram(path):
+    "Iterate over histogram"
+    cmd = ['convert', path, '-colorspace', 'sRGB', '-colorspace', 'Lab', '-format', '%c', 'histogram:info:-']
+    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    for line in pipe.stdout.readlines():
+        ll = line.strip().split(' ')
+        if len(ll) > 1:
+            n = int(ll[0][:-1])
+            color = [int(i) for i in ll[-1][4:-1].split(',')]
+            yield n, color
+
+
 def colormap(path, size=8):
     "Build a matrix of color, black and white colors. Size is the size sampling."
     # imagemagick convert image colorspace from sRGB to CIELab
     # and build an histogram
-    cmd = ['convert', path, '-colorspace', 'sRGB', '-colorspace', 'Lab', '-format', '%c', 'histogram:info:-']
-    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     m = zeros([size, size], int)  # empty matrix
     d = 256 / size
     t = 0
     black = 0
     white = 0
-    for line in pipe.stdout.readlines():
-        ll = line.strip().split(' ')
-        if len(ll) > 1:
-            n = int(ll[0][:-1])
-            t += n
-            color = [int(i) for i in ll[-1][4:-1].split(',')]
-            l, a, b = color
-            if l < 5:
-                black += n
-            elif l > 250:
-                white += n
-            else:
-                m[b / d][a / d] += n
+    for n, color in histogram(path):
+        t += n
+        l, a, b = color
+        if l < 5:
+            black += n
+        elif l > 250:
+            white += n
+        else:
+            m[b / d][a / d] += n
     coeff = 1000
     # Size doesn't matter, values are comparable
     return m * coeff / t, black * coeff / t, white * coeff / t
