@@ -7,9 +7,10 @@ from skimage.color import rgb2lab, lab2rgb
 from skimage.transform import resize
 from sklearn.cluster import MeanShift, estimate_bandwidth
 
-#from scipy.spatial import distance
-#from sklearn.cluster import DBSCAN
-#from sklearn import metrics
+from scipy.spatial import distance
+from sklearn.cluster import DBSCAN
+from sklearn import metrics
+from sklearn.cluster import AffinityPropagation
 
 
 def colors(path):
@@ -32,6 +33,29 @@ def mean_shift(X):
     return labels, cluster_centers
 
 
+def dbscan(X):
+    D = distance.squareform(distance.pdist(X))
+    S = 1 - (D / np.max(D))
+
+    db = DBSCAN(eps=0.95, min_samples=100).fit(S)
+    core_samples = db.core_sample_indices_
+    labels = db.labels_
+
+    # Number of clusters in labels, ignoring noise if present.
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    print n_clusters_
+    print core_samples
+
+
+def affinity(X):
+    af = AffinityPropagation(preference=-50).fit(X)
+    cluster_centers_indices = af.cluster_centers_indices_
+    labels = af.labels_
+
+    n_clusters_ = len(cluster_centers_indices)
+    print cluster_centers_indices
+
+
 def l(abz):
     "restore a L value for a,b values."
     return [[75.0, ab[0], ab[1]] for ab in abz]
@@ -44,17 +68,6 @@ if __name__ == "__main__":
     labels, cluster_centers = mean_shift(X)
     labs = l(cluster_centers)
     rgbs = lab2rgb([labs])
-
-    #D = distance.squareform(distance.pdist(X))
-    #S = 1 - (D / np.max(D))
-
-    #db = DBSCAN(eps=0.95, min_samples=10).fit(S)
-    #core_samples = db.core_sample_indices_
-    #labels = db.labels_
-
-    ## Number of clusters in labels, ignoring noise if present.
-    #n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    #print n_clusters_
 
     with file('toto.html', 'w') as f:
         f.write('<html><body><table><tr>')
