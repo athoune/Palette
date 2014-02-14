@@ -3,7 +3,7 @@
 
 import numpy as np
 from skimage.data import imread
-from skimage.color import rgb2lab, lab2rgb
+from skimage.color import rgb2hsv, lab2rgb
 from skimage.transform import resize
 from sklearn.cluster import MeanShift, estimate_bandwidth
 
@@ -15,13 +15,18 @@ from sklearn.cluster import AffinityPropagation
 
 def colors(path):
     "yield a,b value from a resized image."
-    img = rgb2lab(resize(imread(path), (256, 256)))
-    for line in img:
-        for color in line:
-            l = color[0]
-            if l < 20 or l > 80:
-                continue
-            yield color[1:3]
+    img = rgb2hsv(resize(imread(path), (256, 256)))
+    s = img.reshape((256 * 256, 3))
+    a = s.transpose()
+    v = a[2]
+    mask = (v > 0.2) & (v < 0.8)
+    img2 = s[mask].transpose()
+    x = np.cos(img2[0] * ( 2 * np.pi)) * img2[1]
+    y = np.sin(img2[0] * (2 * np.pi)) * img2[1]
+    r = np.empty(img2.shape)
+    r[0] = x
+    r[1] = y
+    return r.transpose()
 
 
 def mean_shift(X):
@@ -63,7 +68,7 @@ def l(abz):
 
 if __name__ == "__main__":
     import sys
-    X = np.array(list(colors(sys.argv[1])))
+    X = colors(sys.argv[1])
 
     labels, cluster_centers = mean_shift(X)
     labs = l(cluster_centers)
