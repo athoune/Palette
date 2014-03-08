@@ -14,20 +14,40 @@ from sklearn.cluster import AffinityPropagation
 
 
 def colors(path):
-    "yield a,b value from a resized image."
+    "yield x, y value from a resized image."
     img = rgb2hsv(resize(imread(path), (256, 256)))
-    s = img.reshape((256 * 256, 3))
+    return img.reshape((256 * 256, 3))
+
+def convert(s, vmin=0.2, vmax=0.8):
     a = s.transpose()
     v = a[2]
-    mask = (v > 0.2) & (v < 0.8)
+    mask = (v >= vmin) & (v <= vmax)
     img2 = s[mask].transpose()
-    x = np.cos(img2[0] * ( 2 * np.pi)) * img2[1]
-    y = np.sin(img2[0] * (2 * np.pi)) * img2[1]
+    h = img2[0] * (2 * np.pi)
+    s = img2[1]
+    x = np.cos(h) * s
+    y = np.sin(h) * s
     r = np.empty(img2.shape)
     r[0] = x
     r[1] = y
     return r.transpose()
 
+def unconvert(xy):
+    "restore values"
+    xy = xy.transpose()
+    r = np.empty(xy.shape)
+    x, y = xy[0], xy[1]
+    r[0] = np.arctan2(y, x) / (2 * np.pi)
+    teta = r[0]
+
+    mask = r[0] < 0
+    r[0] += np.where(r[0] < 0,
+        np.ones(xy.shape[1]),
+        np.zeros(xy.shape[1]))
+    
+    r[1] = (xy[0] ** 2 + xy[1] ** 2) ** 0.5
+    r[2] = 0.75
+    return r.transpose()
 
 def mean_shift(X):
     bandwidth = estimate_bandwidth(X, quantile=0.15, n_samples=500)
