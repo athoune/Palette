@@ -3,8 +3,10 @@
 
 import numpy as np
 from skimage.data import imread
-from skimage.color import rgb2hsv, lab2rgb
+from skimage.color import rgb2hsv, hsv2rgb, rgb2lab, lab2rgb
 from skimage.transform import resize
+from skimage.filter import gaussian_filter
+from skimage.segmentation import slic
 from sklearn.cluster import MeanShift, estimate_bandwidth
 
 from scipy.spatial import distance
@@ -15,7 +17,7 @@ from sklearn.cluster import AffinityPropagation
 
 def colors(path):
     "yield x, y value from a resized image."
-    img = rgb2hsv(resize(imread(path), (256, 256)))
+    img = gaussian_filter(rgb2hsv(resize(imread(path), (256, 256))), sigma=0.4)
     return img.reshape((256 * 256, 3))
 
 def convert(s, vmin=0.2, vmax=0.8):
@@ -34,23 +36,26 @@ def convert(s, vmin=0.2, vmax=0.8):
 
 def unconvert(xy):
     "restore values"
+    length = xy.shape[0]
     xy = xy.transpose()
-    r = np.empty(xy.shape)
+    r = np.empty((3, length))
     x, y = xy[0], xy[1]
     r[0] = np.arctan2(y, x) / (2 * np.pi)
     teta = r[0]
 
     mask = r[0] < 0
-    r[0] += np.where(r[0] < 0,
-        np.ones(xy.shape[1]),
-        np.zeros(xy.shape[1]))
+    r[0] += np.where(
+        r[0] < 0,
+        np.ones(length),
+        np.zeros(length))
     
     r[1] = (xy[0] ** 2 + xy[1] ** 2) ** 0.5
     r[2] = 0.75
     return r.transpose()
 
+
 def mean_shift(X):
-    bandwidth = estimate_bandwidth(X, quantile=0.15, n_samples=500)
+    bandwidth = estimate_bandwidth(X, quantile=0.2, n_samples=1000)
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     ms.fit(X)
     labels = ms.labels_
@@ -59,17 +64,15 @@ def mean_shift(X):
 
 
 def dbscan(X):
-    D = distance.squareform(distance.pdist(X))
-    S = 1 - (D / np.max(D))
 
-    db = DBSCAN(eps=0.95, min_samples=100).fit(S)
+    db = DBSCAN(eps=0.3, min_samples=10).fit(X)
     core_samples = db.core_sample_indices_
     labels = db.labels_
 
     # Number of clusters in labels, ignoring noise if present.
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     print n_clusters_
-    print core_samples
+    return core_samples
 
 
 def affinity(X):
@@ -81,23 +84,23 @@ def affinity(X):
     print cluster_centers_indices
 
 
-def l(abz):
-    "restore a L value for a,b values."
-    return [[75.0, ab[0], ab[1]] for ab in abz]
-
-
 if __name__ == "__main__":
     import sys
-    X = colors(sys.argv[1])
 
-    labels, cluster_centers = mean_shift(X)
-    labs = l(cluster_centers)
-    rgbs = lab2rgb([labs])
+    #ref = slic(imread(sys.argv[1]), convert2lab=True)
+    #print ref
+    X = convert(colors(sys.argv[1]))
+
+    labels, cluster_centers = mean_shift(X[:,:2])
+    print cluster_centers
+    hsv = unconvert(cluster_centers)
+    print hsv.shape
+    rgbs = hsv2rgb(hsv.reshape((1, hsv.shape[0], 3)))
+    print rgbs
 
     with file('toto.html', 'w') as f:
         f.write('<html><body><table><tr>')
-        for rgb in rgbs[0]:
-            color = [int(c * 256) for c in rgb]
-            print color
+        for rgb in rgbs[0] * 256:
+            color = [int(c) for c in rgb]
             f.write('<td style="background:rgb(%i, %i, %i); width:64px; height:64px;">&nbsp;</td>' % tuple(color))
         f.write('</tr></table><img src="%s"/></body></html>' % sys.argv[1])
